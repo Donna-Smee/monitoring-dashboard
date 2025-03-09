@@ -1,9 +1,17 @@
 services:
-  nodejs:
+  nodejs-app-1:
     image: dailydonuts/first-web-app:latest
     container_name: first-web-app
     ports:
       - "3000:3000"
+    networks:
+      - app-network
+
+  nodejs-app-2:
+    image: dailydonuts/second-web-app:latest
+    container_name: second-web-app
+    ports:
+      - "4000:4000"
     networks:
       - app-network
 
@@ -27,6 +35,17 @@ services:
     networks:
       - app-network
 
+  puppeteer:
+    image: dailydonuts/puppeteer:latest 
+    container_name: puppeteer
+    networks:
+      - app-network
+    depends_on:
+      - nodejs-app-1
+      - nodejs-app-2
+    environment:
+      - PUPPETEER_HEADLESS=true
+    restart: always  # Optional: Restart the Puppeteer service if it fails
 
 networks:
   app-network:
