@@ -12,7 +12,10 @@ Make sure you have Docker Desktop running
 
 ## Step 3: Docker-compose up
 After cloning the repo, make sure you're in the folder: monitoring-dashboard
-Run this command ``` docker-compose up -d --pull always ```
+Run this command 
+``` 
+docker-compose up -d --pull always 
+```
 
 (The pull always make sure it always has the newest deployment)
 
@@ -23,16 +26,24 @@ Note: Grafana sometimes takes a while to start (show up on localhost) but if its
 ## Step 4: Go to the urls
 
 To see the first web app
-``` http://localhost:3000/ ```
+``` 
+http://localhost:3000/ 
+```
 
 To see the second web app
-``` http://localhost:4000/ ```
+``` 
+http://localhost:4000/ 
+```
 
 To see the Prometheus
-``` http://localhost:9090/ ```
+``` 
+http://localhost:9090/ 
+```
 
 To see Grafana
-``` http://localhost:8080/ ```
+``` 
+http://localhost:8080/ 
+```
 
 In Prometheus, you can execute some queries. The simple one that just gets all http requests is:
 ```
