@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   nodejs-app-1:
     image: dailydonuts/first-web-app:latest
@@ -22,21 +24,47 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alert.rules.yml:/etc/prometheus/alert.rules.yml
     networks:
       - app-network
+    depends_on:
+      - nodejs-app-1
+      - nodejs-app-2
+      - alertmanager
+      - node-exporter  # Ensures Prometheus starts after node-exporter
 
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
-      - "8080:3000"
+      - "3030:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     networks:
       - app-network
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    networks:
+      - app-network
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    networks:
+      - app-network
 
   puppeteer:
-    image: dailydonuts/puppeteer:latest 
+    image: dailydonuts/puppeteer:latest
     container_name: puppeteer
     networks:
       - app-network
@@ -45,8 +73,11 @@ services:
       - nodejs-app-2
     environment:
       - PUPPETEER_HEADLESS=true
-    restart: always  # Optional: Restart the Puppeteer service if it fails
+    restart: always
 
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  grafana-data:

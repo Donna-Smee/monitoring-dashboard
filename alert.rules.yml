@@ -1,0 +1,62 @@
+groups:
+  - name: application_alerts
+    rules:
+      # Alert when either Node.js app is down
+      - alert: ServiceDown
+        expr: up{job="nodejs-app"} == 0 or up{job="nodejs-app-2"} == 0
+        for: 10s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service Down"
+          description: "One of the Node.js apps (nodejs-app or nodejs-app-2) is down for more than 30 seconds."
+
+      # Alert when request duration exceeds 2 seconds (high latency)
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=~"nodejs-app|nodejs-app-2"}[5m])) > 2
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Request Latency"
+          description: "The 95th percentile request duration is above 2 seconds for one of the Node.js apps."
+
+      # Alert when error rate exceeds 10% of total requests
+      - alert: HighErrorRate
+        expr: (sum(rate(http_requests_total{status=~"5..", job=~"nodejs-app|nodejs-app-2"}[5m])) / sum(rate(http_requests_total{job=~"nodejs-app|nodejs-app-2"}[5m]))) * 100 > 10
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "High HTTP 5xx Errors"
+          description: "More than 10% of requests are failing with 5xx errors for one of the Node.js apps."
+
+      # Alert when CPU usage exceeds 20%
+      - alert: HighCPUUsage
+        expr: rate(node_cpu_seconds_total{mode!="idle", job="node-exporter"}[5m]) * 100 > 20
+        for: 10s
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU Usage"
+          description: "CPU usage is above 20% for more than 10 seconds."
+
+      # Alert when memory usage exceeds 70%
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes{job="node-exporter"} / node_memory_MemTotal_bytes{job="node-exporter"})) * 100 > 70
+        for: 10s
+        labels:
+          severity: critical
+        annotations:
+          summary: "High Memory Usage"
+          description: "Memory usage is above 70% for more than 10 seconds."
+
+      # Alert when disk space is low (less than 10% available)
+      - alert: LowDiskSpace
+        expr: (node_filesystem_avail_bytes{job="node-exporter"} / node_filesystem_size_bytes{job="node-exporter"}) * 100 < 10
+        for: 10s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Low Disk Space"
+          description: "Less than 10% disk space remaining."
